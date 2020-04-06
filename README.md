@@ -42,7 +42,7 @@ Usage lc <filepath>
 
 ## Licence
 
-[MIT](https://github.com/k-nasa/lc/blob/master/LICENCE)
+[MIT](https://github.com/k-nasa/lc/blob/master/LICENSE)
 
 ## Author
 
