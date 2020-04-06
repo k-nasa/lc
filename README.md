@@ -29,6 +29,7 @@ cargo install lc
 ## Usage
 
 ```console
+Usage lc <filepath>
 ```
 
 ## Contribution
