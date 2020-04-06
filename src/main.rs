@@ -24,8 +24,8 @@ async fn main() -> Result<()> {
     for f in futures {
         let result = f.await.unwrap();
         match result {
-            Err(e) => println!("\x1b[01;{0}mErr \x1b[0m {1}", 31, e),
-            Ok(v) => println!("\x1b[01;{0}mOk\x1b[0m {1}", 32, v),
+            Err(e) => println!("\x1b[01;{0}mErr \x1b[m {1}", 31, e),
+            Ok(v) => println!("\x1b[01;{0}mOk\x1b[m {1}", 32, v),
         }
     }
 
