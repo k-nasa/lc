@@ -24,8 +24,8 @@ async fn main() -> Result<()> {
     for f in futures {
         let result = f.await.unwrap();
         match result {
-            Err(e) => println!("\x1b[01;{0}mErr \x1b[m {1}", 31, e),
-            Ok(v) => println!("\x1b[01;{0}mOk\x1b[m {1}", 32, v),
+            Err(e) => println!("\x1b[01;31mErr \x1b[m {}", e),
+            Ok(v) => println!("\x1b[01;32mOk\x1b[m {}", v),
         }
     }
 
@@ -35,10 +35,7 @@ async fn main() -> Result<()> {
 fn find_link(text: &str) -> Vec<String> {
     let r = Regex::new(r"https?://[\w!?/\+\-_~=;\.,*&@#$%]+").unwrap();
 
-    r.find_iter(text)
-        .into_iter()
-        .map(|m| m.as_str().to_string())
-        .collect()
+    r.find_iter(text).map(|m| m.as_str().to_string()).collect()
 }
 
 async fn verify_link(link: String) -> Result<String> {
@@ -49,7 +46,7 @@ async fn verify_link(link: String) -> Result<String> {
         bail!("{} -> status code {}", link, status_code);
     }
 
-    Ok(format!("{}", link))
+    Ok(link.to_string())
 }
 
 #[cfg(test)]
