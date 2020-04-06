@@ -57,12 +57,12 @@ mod tests {
     use super::*;
 
     static dummy_text: &str = r###"
-# mlc
+# lc
 
 ## Overview
 
-[![Actions Status](https://github.com/k-nasa/mlc/workflows/CI/badge.svg)](https://github.com/k-nasa/mlc/actions)
-[![crate-name at crates.io](https://img.shields.io/crates/v/mlc.svg)](https://crates.io/crates/mlc)
+[![Actions Status](https://github.com/k-nasa/lc/workflows/CI/badge.svg)](https://github.com/k-nasa/lc/actions)
+[![crate-name at crates.io](https://img.shields.io/crates/v/lc.svg)](https://crates.io/crates/lc)
 
 Markdown link checker"###;
 
@@ -73,10 +73,10 @@ Markdown link checker"###;
         assert_eq!(
             links,
             vec![
-                "https://github.com/k-nasa/mlc/workflows/CI/badge.svg",
-                "https://github.com/k-nasa/mlc/actions",
-                "https://img.shields.io/crates/v/mlc.svg",
-                "https://crates.io/crates/mlc",
+                "https://github.com/k-nasa/lc/workflows/CI/badge.svg",
+                "https://github.com/k-nasa/lc/actions",
+                "https://img.shields.io/crates/v/lc.svg",
+                "https://crates.io/crates/lc",
             ]
             .iter()
             .map(|s| s.to_string())

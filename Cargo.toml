@@ -1,11 +1,11 @@
 [package]
-name = "mlc"
+name = "lc"
 version = "0.1.0"
 authors = ["k-nasa <htilcs1115@gmail.com>"]
-repository = "https://github.com/k-nasa/mlc"
+repository = "https://github.com/k-nasa/lc"
 keywords = ["cli", "markdown"]
 categories = ["command-line-utilities"]
-description = "Markdown link checker"
+description = "Link checker"
 readme = "README.md"
 edition = "2018"
 
