@@ -1,5 +1,6 @@
 use anyhow::{bail, Result};
 use regex::Regex;
+use std::path::PathBuf;
 use tokio::{sync::mpsc, task};
 
 #[tokio::main]
@@ -7,16 +8,16 @@ async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() < 2 {
-        println!("Usage example: {} README.md Makefile src", args[0]);
+        println!("Usage example: {} README.md Makefile src/", args[0]);
         std::process::exit(1);
     }
 
-    for filepath in &args[1..] {
-        println!("\x1b[01;36m=== Verify {} === \x1b[m", filepath);
+    for filepath in args_to_filepaths(&args) {
+        println!("\x1b[01;36m=== Verify {:?} === \x1b[m", filepath);
 
-        let text = match tokio::fs::read_to_string(filepath).await {
+        let text = match tokio::fs::read_to_string(&filepath).await {
             Err(e) => {
-                println!("\x1b[01;31mError verify {}: \x1b[m{}", filepath, e);
+                println!("\x1b[01;31mError verify {:?}: \x1b[m{}", filepath, e);
                 continue;
             }
 
@@ -41,6 +42,31 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn args_to_filepaths(args: &[String]) -> Vec<PathBuf> {
+    let mut filepaths = vec![];
+    for filepath in &args[1..] {
+        let path = std::path::PathBuf::from(filepath);
+        filepaths.append(&mut walk_dir(&path));
+    }
+
+    filepaths
+}
+
+fn walk_dir(path_buf: &PathBuf) -> Vec<PathBuf> {
+    let mut filepaths = vec![];
+
+    if path_buf.is_dir() {
+        for entry in std::fs::read_dir(path_buf).unwrap() {
+            let path = entry.unwrap().path();
+            filepaths.append(&mut walk_dir(&path));
+        }
+    } else {
+        filepaths.push(path_buf.to_path_buf());
+    }
+
+    filepaths
 }
 
 fn find_link(text: &str) -> Vec<String> {
