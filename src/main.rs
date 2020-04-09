@@ -1,32 +1,43 @@
 use anyhow::{bail, Result};
 use regex::Regex;
+use tokio::{sync::mpsc, task};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() < 2 {
-        println!("Usage {} <filepath>", args[0]);
+        println!("Usage example: {} README.md Makefile src", args[0]);
         std::process::exit(1);
     }
 
-    let filepath = &args[1];
+    for filepath in &args[1..] {
+        println!("\x1b[01;36m=== Verify {} === \x1b[m", filepath);
 
-    let text = std::fs::read_to_string(filepath)?;
-    let links = find_link(&text);
+        let text = match tokio::fs::read_to_string(filepath).await {
+            Err(e) => {
+                println!("\x1b[01;31mError verify {}: \x1b[m{}", filepath, e);
+                continue;
+            }
 
-    let mut futures = vec![];
-    for link in links {
-        let handler = tokio::spawn(async move { verify_link(link).await });
-        futures.push(handler)
-    }
+            Ok(text) => text,
+        };
+        let links = find_link(&text);
 
-    for f in futures {
-        let result = f.await.unwrap();
-        match result {
-            Err(e) => println!("\x1b[01;31mErr \x1b[m {}", e),
-            Ok(v) => println!("\x1b[01;32mOk\x1b[m {}", v),
+        let mut futures = vec![];
+        for link in links {
+            let handler = task::spawn(async move { verify_link(link).await });
+            futures.push(handler)
         }
+
+        for f in futures {
+            let result = f.await.unwrap();
+            match result {
+                Err(e) => println!("\x1b[01;31mErr \x1b[m {}", e),
+                Ok(v) => println!("\x1b[01;32mOk\x1b[m {}", v),
+            }
+        }
+        println!("");
     }
 
     Ok(())
