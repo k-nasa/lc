@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use regex::Regex;
 use std::path::PathBuf;
-use tokio::{sync::mpsc, task};
+use tokio::task;
 
 #[tokio::main]
 async fn main() -> Result<()> {
