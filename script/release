@@ -16,7 +16,7 @@ install_cross() {
   if [ $? -ne 0 ]; then
     info 'cross not found. try install cross'
 
-    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    cargo install cross
 
     success "success install cross"
   else

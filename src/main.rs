@@ -1,35 +1,72 @@
 use anyhow::{bail, Result};
 use regex::Regex;
+use std::path::PathBuf;
+use tokio::task;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() < 2 {
-        println!("Usage {} <filepath>", args[0]);
+        println!("Usage example: {} README.md Makefile src/", args[0]);
         std::process::exit(1);
     }
 
-    let filepath = &args[1];
+    for filepath in args_to_filepaths(&args) {
+        println!("\x1b[01;36m=== Verify {:?} === \x1b[m", filepath);
 
-    let text = std::fs::read_to_string(filepath)?;
-    let links = find_link(&text);
+        let text = match tokio::fs::read_to_string(&filepath).await {
+            Err(e) => {
+                println!("\x1b[01;31mError verify {:?}: \x1b[m{}", filepath, e);
+                continue;
+            }
 
-    let mut futures = vec![];
-    for link in links {
-        let handler = tokio::spawn(async move { verify_link(link).await });
-        futures.push(handler)
-    }
+            Ok(text) => text,
+        };
+        let links = find_link(&text);
 
-    for f in futures {
-        let result = f.await.unwrap();
-        match result {
-            Err(e) => println!("\x1b[01;31mErr \x1b[m {}", e),
-            Ok(v) => println!("\x1b[01;32mOk\x1b[m {}", v),
+        let mut futures = vec![];
+        for link in links {
+            let handler = task::spawn(async move { verify_link(link).await });
+            futures.push(handler)
         }
+
+        for f in futures {
+            let result = f.await.unwrap();
+            match result {
+                Err(e) => println!("\x1b[01;31mErr \x1b[m {}", e),
+                Ok(v) => println!("\x1b[01;32mOk\x1b[m {}", v),
+            }
+        }
+        println!("");
     }
 
     Ok(())
+}
+
+fn args_to_filepaths(args: &[String]) -> Vec<PathBuf> {
+    let mut filepaths = vec![];
+    for filepath in &args[1..] {
+        let path = std::path::PathBuf::from(filepath);
+        filepaths.append(&mut walk_dir(&path));
+    }
+
+    filepaths
+}
+
+fn walk_dir(path_buf: &PathBuf) -> Vec<PathBuf> {
+    let mut filepaths = vec![];
+
+    if path_buf.is_dir() {
+        for entry in std::fs::read_dir(path_buf).unwrap() {
+            let path = entry.unwrap().path();
+            filepaths.append(&mut walk_dir(&path));
+        }
+    } else {
+        filepaths.push(path_buf.to_path_buf());
+    }
+
+    filepaths
 }
 
 fn find_link(text: &str) -> Vec<String> {
@@ -53,7 +90,7 @@ async fn verify_link(link: String) -> Result<String> {
 mod tests {
     use super::*;
 
-    static dummy_text: &str = r###"
+    static DUMMY_TEXT: &str = r###"
 # lc
 
 ## Overview
@@ -65,7 +102,7 @@ Markdown link checker"###;
 
     #[test]
     fn test_find_link() {
-        let links = find_link(dummy_text);
+        let links = find_link(DUMMY_TEXT);
 
         assert_eq!(
             links,
