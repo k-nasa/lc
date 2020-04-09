@@ -90,7 +90,7 @@ async fn verify_link(link: String) -> Result<String> {
 mod tests {
     use super::*;
 
-    static dummy_text: &str = r###"
+    static DUMMY_TEXT: &str = r###"
 # lc
 
 ## Overview
@@ -102,7 +102,7 @@ Markdown link checker"###;
 
     #[test]
     fn test_find_link() {
-        let links = find_link(dummy_text);
+        let links = find_link(DUMMY_TEXT);
 
         assert_eq!(
             links,
