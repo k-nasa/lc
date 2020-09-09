@@ -2,6 +2,8 @@
 # This script is used for release binary
 # Usage: ./release version GITHUB_TOKEN
 
+CRATE_NAME=lc
+MISC="README.md LICENSE"
 
 info () {
   printf "\r  [ \033[00;34mINFO\033[0m ] $1\n"
@@ -40,15 +42,12 @@ install_rgh() {
 build_all() {
   rm -rf dist/
 
-  build x86_64-pc-windows-gnu lc.exe
-  build x86_64-apple-darwin lc
-  build x86_64-unknown-linux-gnu lc
+  build x86_64-pc-windows-gnu $CRATE_NAME.exe
+  build x86_64-apple-darwin $CRATE_NAME
+  build x86_64-unknown-linux-gnu $CRATE_NAME
 }
 
 build() {
-  CRATE_NAME=lc
-  MISC="README.md LICENSE"
-
   TARGET=$1
   BIN_NAME=$2
   DIRNAME=${CRATE_NAME}_${TARGET}
