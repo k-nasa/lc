@@ -1,18 +1,27 @@
 use anyhow::{bail, Result};
 use regex::Regex;
 use std::path::PathBuf;
+use tokio::sync::mpsc;
 use tokio::task;
+
+use clap::{AppSettings, Clap};
+
+#[derive(Clap)]
+#[clap(version = "0.3.0", author = "k-nasa")]
+#[clap(setting = AppSettings::ColoredHelp)]
+struct Opts {
+    files: Vec<String>,
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args: Vec<String> = std::env::args().collect();
-
-    if args.len() < 2 {
-        println!("Usage example: {} README.md Makefile src/", args[0]);
+    let opts: Opts = Opts::parse();
+    if opts.files.len() < 2 {
+        println!("Usage example: lc README.md Makefile src/");
         std::process::exit(1);
     }
 
-    for filepath in args_to_filepaths(&args) {
+    for filepath in args_to_filepaths(&opts.files) {
         println!("\x1b[01;36m=== Verify {:?} === \x1b[m", filepath);
 
         let text = match tokio::fs::read_to_string(&filepath).await {
@@ -25,28 +34,35 @@ async fn main() -> Result<()> {
         };
         let links = find_link(&text);
 
-        let mut futures = vec![];
-        for link in links {
-            let handler = task::spawn(async move { verify_link(link).await });
-            futures.push(handler)
-        }
+        let (mut tx, mut rx) = mpsc::channel(10);
+        tokio::spawn(async move {
+            for link in links {
+                let handler = task::spawn(async move { verify_link(link).await });
 
-        for f in futures {
+                match tx.send(handler).await {
+                    Err(e) => println!("\x1b[01;31mErr \x1b[m internal error: {}", e),
+                    Ok(_) => (),
+                };
+            }
+        });
+
+        while let Some(f) = rx.recv().await {
             let result = f.await.unwrap();
             match result {
                 Err(e) => println!("\x1b[01;31mErr \x1b[m {}", e),
                 Ok(v) => println!("\x1b[01;32mOk\x1b[m {}", v),
             }
         }
+
         println!("");
     }
 
     Ok(())
 }
 
-fn args_to_filepaths(args: &[String]) -> Vec<PathBuf> {
+fn args_to_filepaths(files: &[String]) -> Vec<PathBuf> {
     let mut filepaths = vec![];
-    for filepath in &args[1..] {
+    for filepath in files {
         let path = std::path::PathBuf::from(filepath);
         filepaths.append(&mut walk_dir(&path));
     }
