@@ -25,19 +25,26 @@ async fn main() -> Result<()> {
         };
         let links = find_link(&text);
 
-        let mut futures = vec![];
-        for link in links {
-            let handler = task::spawn(async move { verify_link(link).await });
-            futures.push(handler)
-        }
+        let (mut tx, mut rx) = mpsc::channel(10);
+        tokio::spawn(async move {
+            for link in links {
+                let handler = task::spawn(async move { verify_link(link).await });
 
-        for f in futures {
+                match tx.send(handler).await {
+                    Err(e) => println!("\x1b[01;31mErr \x1b[m internal error: {}", e),
+                    Ok(_) => (),
+                };
+            }
+        });
+
+        while let Some(f) = rx.recv().await {
             let result = f.await.unwrap();
             match result {
                 Err(e) => println!("\x1b[01;31mErr \x1b[m {}", e),
                 Ok(v) => println!("\x1b[01;32mOk\x1b[m {}", v),
             }
         }
+
         println!("");
     }
 

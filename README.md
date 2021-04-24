@@ -29,7 +29,7 @@ cargo install lc
 ## Example
 
 ```console
-lc README.md src/"
+lc README.md src/
 
 === Verify "README.md" ===
 Ok https://github.com/k-nasa/lc/workflows/CI/badge.svg
