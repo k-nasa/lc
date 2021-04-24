@@ -14,4 +14,4 @@ jobs:
 
     - name: Release
       # run: ./script/release ${{ github.event.inputs.version }}"  ${{ secrets.GITHUB_TOKEN }}
-      run: echo ${{ github.event.inputs.version }}"  ${{ secrets.GITHUB_TOKEN }}
+      run: echo ${{ github.event.inputs.version }}  ${{ secrets.GITHUB_TOKEN }}
