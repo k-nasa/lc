@@ -37,7 +37,7 @@ async fn main() -> Result<()> {
         };
         let links = find_link(&text);
 
-        let (mut tx, mut rx) = mpsc::channel(10);
+        let (tx, mut rx) = mpsc::channel(10);
         tokio::spawn(async move {
             for link in links {
                 let handler = task::spawn(async move { verify_link(link).await });
