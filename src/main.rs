@@ -4,11 +4,14 @@ use std::path::PathBuf;
 use tokio::sync::mpsc;
 use tokio::task;
 
-use clap::{AppSettings, Clap};
+use clap::Parser;
 
-#[derive(Clap)]
-#[clap(version = "0.3.0", author = "k-nasa")]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Parser)]
+#[clap(
+    version = "0.3.0",
+    author = "k-nasa <htilcs1115@gmail.com>",
+    about = "link checker"
+)]
 struct Opts {
     files: Vec<String>,
 }
