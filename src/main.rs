@@ -19,11 +19,6 @@ struct Opts {
 #[tokio::main]
 async fn main() -> Result<()> {
     let opts: Opts = Opts::parse();
-    if opts.files.len() < 2 {
-        println!("Usage example: lc README.md Makefile src/");
-        std::process::exit(1);
-    }
-
     for filepath in args_to_filepaths(&opts.files) {
         println!("\x1b[01;36m=== Verify {:?} === \x1b[m", filepath);
 
